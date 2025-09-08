@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>大卫排版应用程序</title>
+    <meta name="description" content="专业的文本排版工具，支持智能分页和格式识别">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="大卫排版">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .features {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .features h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            color: #666;
+        }
+        
+        .features li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-btn {
+            background: #28a745 !important;
+            margin-bottom: 10px;
+        }
+        
+        .install-btn {
+            background: #ffc107 !important;
+            color: #000 !important;
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .btn {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>大卫排版应用程序</h1>
+            <p>David Text Formatting Application</p>
+        </div>
+        
+        <div class="content">
+            <form id="form">
+                <div class="form-group">
+                    <label for="text">输入要排版的文本内容：</label>
+                    <textarea id="text" name="text" placeholder="在此输入要排版的文本内容..."></textarea>
+                </div>
+                
+                <button type="button" class="btn file-btn" onclick="document.getElementById('fileInput').click()">
+                    📁 选择文件
+                </button>
+                
+                <input type="file" id="fileInput" class="file-input" accept=".txt,.md" onchange="handleFileSelect(event)">
+                
+                <button type="submit" class="btn" id="submitBtn">
+                    🚀 开始排版
+                </button>
+                
+                <button type="button" class="btn install-btn" onclick="showInstallInstructions()">
+                    📱 安装到手机桌面
+                </button>
+            </form>
+            
+            <div id="status" class="status"></div>
+            
+            <div class="features">
+                <h3>功能特点</h3>
+                <ul>
+                    <li>自动识别标题格式</li>
+                    <li>清理特殊符号</li>
+                    <li>智能分页</li>
+                    <li>专业排版输出</li>
+                    <li>大16开尺寸 (210mm × 285mm)</li>
+                    <li>支持文件选择</li>
+                    <li>一键下载结果</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 文件选择处理
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('text').value = e.target.result;
+                    showStatus('文件读取成功！', 'success');
+                };
+                reader.readAsText(file, 'UTF-8');
+            }
+        }
+        
+        // 安装说明
+        function showInstallInstructions() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let instructions = '';
+            
+            if (isIOS) {
+                instructions = `
+                <h3>📱 iPhone安装方法：</h3>
+                <ol>
+                    <li>点击底部中间的分享按钮 📤</li>
+                    <li>向下滑动找到"添加到主屏幕"</li>
+                    <li>点击"添加"完成安装</li>
+                </ol>
+                `;
+            } else if (isAndroid) {
+                instructions = `
+                <h3>📱 Android安装方法：</h3>
+                <p><strong>方法1：长按安装</strong></p>
+                <ol>
+                    <li>长按页面空白处</li>
+                    <li>选择"添加到主屏幕"</li>
+                </ol>
+                <p><strong>方法2：菜单安装</strong></p>
+                <ol>
+                    <li>点击浏览器右上角三个点 ⋮</li>
+                    <li>选择"添加到主屏幕"</li>
+                </ol>
+                <p><strong>方法3：地址栏安装</strong></p>
+                <ol>
+                    <li>点击地址栏右侧的星号 ⭐</li>
+                    <li>选择"添加到主屏幕"</li>
+                </ol>
+                `;
+            } else {
+                instructions = `
+                <h3>📱 通用安装方法：</h3>
+                <ol>
+                    <li>点击浏览器菜单（通常是三个点或三条线）</li>
+                    <li>查找"添加到主屏幕"、"安装应用"或"添加到桌面"</li>
+                    <li>按照提示完成安装</li>
+                </ol>
+                `;
+            }
+            
+            showStatus(instructions, 'info');
+        }
+        
+        // 表单提交处理
+        document.getElementById('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('text').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (!text) {
+                showStatus('请输入文本内容或选择文件', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading"></div> 处理中...';
+            showStatus('正在处理文本，请稍候...', 'info');
+            
+            // 模拟处理过程
+            setTimeout(() => {
+                try {
+                    // 处理文本
+                    const processedText = processText(text);
+                    const htmlResult = createHTML(processedText);
+                    
+                    // 下载文件
+                    downloadFile(htmlResult, `大卫排版结果_${new Date().getTime()}.html`);
+                    
+                    showStatus('✅ 排版完成！文件已下载到您的设备', 'success');
+                } catch (error) {
+                    showStatus('❌ 处理失败: ' + error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '🚀 开始排版';
+                }
+            }, 1500);
+        });
+        
+        // 文本处理函数
+        function processText(text) {
+            // 清理Markdown符号和特殊符号
+            text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+            text = text.replace(/\*([^*]+)\*/g, '$1');
+            text = text.replace(/^#+\s*/gm, '');
+            text = text.replace(/#+/g, '');
+            text = text.replace(/[□■▪▫▬▭▮▯]/g, '');
+            text = text.replace(/[•·◦‣⁃]/g, '');
+            
+            // 多次清理确保彻底
+            for (let i = 0; i < 10; i++) {
+                text = text.replace(/[▪▫▬▭▮▯]/g, '');
+            }
+            
+            // 处理段落
+            const paragraphs = text.split('\n\n');
+            const processed = [];
+            
+            for (const paragraph of paragraphs) {
+                const trimmed = paragraph.trim();
+                if (!trimmed) continue;
+                
+                if (/^第[一二三四五六七八九十\d]+天：/.test(trimmed)) {
+                    processed.push(`<h1>${trimmed}</h1>`);
+                } else if (/^分钟 \d+-\d+：/.test(trimmed)) {
+                    processed.push(`<h2>${trimmed}</h2>`);
+                } else if (/^深度技术解析：/.test(trimmed)) {
+                    processed.push(`<h2>${trimmed}</h2>`);
+                } else if (trimmed.startsWith('- ')) {
+                    processed.push(`<li>${trimmed.substring(2)}</li>`);
+                } else if (/^\d+\./.test(trimmed)) {
+                    processed.push(`<li>${trimmed}</li>`);
+                } else {
+                    processed.push(`<p class="normal-text">${trimmed}</p>`);
+                }
+            }
+            
+            return processed.join('\n\n');
+        }
+        
+        // 创建HTML模板
+        function createHTML(content) {
+            return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>大卫排版结果</title>
+    <style>
+        @page { size: 210mm 285mm; margin: 25mm; }
+        body { font-family: "Microsoft YaHei", serif; line-height: 1.6; margin: 0; padding: 20px; }
+        .book-container { max-width: 21cm; margin: 0 auto; background: white; padding: 25mm; }
+        h1 { font-size: 20pt; font-weight: bold; color: #2c3e50; margin: 20pt 0 15pt 0; }
+        h2 { font-size: 16pt; font-weight: bold; color: #34495e; margin: 15pt 0 10pt 0; }
+        p { font-size: 12pt; margin: 8pt 0; text-indent: 2em; }
+        p.normal-text { text-indent: 2em !important; }
+        li { font-size: 12pt; margin: 4pt 0; list-style: none; }
+    </style>
+</head>
+<body>
+    <div class="book-container">
+        ${content}
+    </div>
+</body>
+</html>`;
+        }
+        
+        // 下载文件
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 显示状态消息
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.innerHTML = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否支持PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            }
+        });
+    </script>
+</body>
+</html>
+

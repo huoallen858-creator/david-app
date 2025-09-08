@@ -1,0 +1,23 @@
+{
+  "name": "大卫排版应用程序",
+  "short_name": "大卫排版",
+  "description": "专业的文本排版工具，支持智能分页和格式识别",
+  "start_url": "/david_mobile_app.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

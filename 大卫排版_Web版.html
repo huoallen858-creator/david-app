@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大卫排版应用程序 - Web版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "SimSun", serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .input-section {
+            flex: 1;
+            padding: 30px;
+            border-right: 1px solid #eee;
+        }
+
+        .output-section {
+            flex: 1;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: "Microsoft YaHei", "SimSun", serif;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .output {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .output h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0 15px 0;
+            text-align: center;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+        }
+
+        .output h2 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #34495e;
+            margin: 20px 0 10px 0;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+
+        .output p {
+            font-size: 16px;
+            text-indent: 2em;
+            margin: 10px 0;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        .output blockquote {
+            background-color: #f8f9fa;
+            border-left: 4px solid #e74c3c;
+            margin: 15px 0;
+            padding: 15px 20px;
+            font-style: italic;
+            font-weight: bold;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .page-break {
+            border-top: 3px dashed #e74c3c;
+            margin: 30px 0;
+            padding: 15px 0;
+            text-align: center;
+            color: #e74c3c;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .page-break::before {
+            content: "📄 分页 - 28.5cm 📄";
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 大卫排版应用程序</h1>
+            <p>David Text Formatting Application - Web Version</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="textInput">输入要排版的文本内容：</label>
+                    <textarea id="textInput"
+                        placeholder="在此输入要排版的文本内容...&#10;&#10;支持格式：&#10;• CH1 章标题&#10;• CH1-S1 小节标题&#10;• 【重要内容】&#10;• 普通段落会自动首行缩进"></textarea>
+                </div>
+
+                <button class="btn" onclick="formatText()">
+                    🚀 开始排版
+                </button>
+
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">📝</div>
+                        <div>自动识别标题格式</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🧹</div>
+                        <div>清理特殊符号</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📄</div>
+                        <div>智能分页</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">✨</div>
+                        <div>专业排版输出</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <div class="form-group">
+                    <label>排版结果预览：</label>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <div>正在处理文本...</div>
+                    </div>
+                    <div class="output" id="output">
+                        <p style="text-align: center; color: #666; margin-top: 100px;">
+                            输入文本后点击"开始排版"按钮查看结果
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatText() {
+            const input = document.getElementById('textInput').value;
+            const output = document.getElementById('output');
+            const loading = document.getElementById('loading');
+
+            if (!input.trim()) {
+                alert('请输入要排版的文本内容！');
+                return;
+            }
+
+            // 显示加载动画
+            loading.style.display = 'block';
+            output.style.display = 'none';
+
+            // 模拟处理延迟
+            setTimeout(() => {
+                const formattedText = processText(input);
+                output.innerHTML = formattedText;
+                loading.style.display = 'none';
+                output.style.display = 'block';
+            }, 500);
+        }
+
+        function processText(text) {
+            // 清理Markdown符号和特殊符号
+            text = text.replace(/\*\*([^*]+)\*\*/g, '$1');  // 移除 **text**
+            text = text.replace(/\*([^*]+)\*/g, '$1');      // 移除 *text*
+            text = text.replace(/^#+\s*/gm, '');            // 移除行首的 # 符号
+            text = text.replace(/#+/g, '');                 // 移除所有的 # 符号
+            text = text.replace(/[□■▪▫▬▭▮▯•·◦‣⁃]/g, '');    // 移除各种符号
+
+            // 按段落分割
+            const paragraphs = text.split(/\n\s*\n/);
+            let result = '';
+            let lineCount = 0;
+            const maxLinesPerPage = 35; // 28.5cm约35行
+
+            for (let i = 0; i < paragraphs.length; i++) {
+                const paragraph = paragraphs[i].trim();
+                if (!paragraph) continue;
+
+                // 检查是否是标题
+                if (paragraph.match(/^CH\d+[-\s]/)) {
+                    // 一级标题
+                    if (lineCount > 0) {
+                        result += '<div class="page-break"></div>';
+                    }
+                    result += `<h1>${paragraph}</h1>`;
+                    lineCount += 3;
+                } else if (paragraph.match(/^CH\d+-S\d+/)) {
+                    // 二级标题
+                    if (lineCount > maxLinesPerPage - 5) {
+                        result += '<div class="page-break"></div>';
+                        lineCount = 0;
+                    }
+                    result += `<h2>${paragraph}</h2>`;
+                    lineCount += 2;
+                } else if (paragraph.match(/^【.*】$/)) {
+                    // 引用内容
+                    if (lineCount > maxLinesPerPage - 3) {
+                        result += '<div class="page-break"></div>';
+                        lineCount = 0;
+                    }
+                    result += `<blockquote>${paragraph}</blockquote>`;
+                    lineCount += 2;
+                } else {
+                    // 普通段落
+                    if (lineCount > maxLinesPerPage - 2) {
+                        result += '<div class="page-break"></div>';
+                        lineCount = 0;
+                    }
+                    result += `<p>${paragraph}</p>`;
+                    lineCount += Math.ceil(paragraph.length / 50); // 估算行数
+                }
+            }
+
+            return result;
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            // 可以在这里添加一些初始化代码
+            console.log('大卫排版应用程序已加载');
+        });
+    </script>
+</body>
+
+</html>

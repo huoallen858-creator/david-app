@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大卫排版应用程序</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .features {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .features h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            color: #666;
+        }
+        
+        .features li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>大卫排版应用程序</h1>
+            <p>David Text Formatting Application</p>
+        </div>
+        
+        <div class="content">
+            <form id="form">
+                <div class="form-group">
+                    <label for="text">输入要排版的文本内容：</label>
+                    <textarea id="text" name="text" placeholder="在此输入要排版的文本内容..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn">开始排版</button>
+            </form>
+            
+            <div id="status" class="status"></div>
+            
+            <div class="features">
+                <h3>功能特点</h3>
+                <ul>
+                    <li>自动识别标题格式</li>
+                    <li>清理特殊符号</li>
+                    <li>智能分页</li>
+                    <li>专业排版输出</li>
+                    <li>大16开尺寸 (210mm × 285mm)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('text').value.trim();
+            const status = document.getElementById('status');
+            
+            if (!text) {
+                showStatus('请输入文本内容', 'error');
+                return;
+            }
+            
+            try {
+                // 处理文本
+                const processedText = processText(text);
+                const htmlResult = createHTML(processedText);
+                
+                // 下载文件
+                downloadFile(htmlResult, `大卫排版结果_${new Date().getTime()}.html`);
+                
+                showStatus('排版完成！文件已下载到您的设备', 'success');
+            } catch (error) {
+                showStatus('处理失败: ' + error.message, 'error');
+            }
+        });
+        
+        function processText(text) {
+            // 清理Markdown符号和特殊符号
+            text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+            text = text.replace(/\*([^*]+)\*/g, '$1');
+            text = text.replace(/^#+\s*/gm, '');
+            text = text.replace(/#+/g, '');
+            text = text.replace(/[□■▪▫▬▭▮▯]/g, '');
+            text = text.replace(/[•·◦‣⁃]/g, '');
+            
+            // 多次清理
+            for (let i = 0; i < 10; i++) {
+                text = text.replace(/[▪▫▬▭▮▯]/g, '');
+            }
+            
+            // 处理段落
+            const paragraphs = text.split('\n\n');
+            const processed = [];
+            
+            for (const paragraph of paragraphs) {
+                const trimmed = paragraph.trim();
+                if (!trimmed) continue;
+                
+                if (/^第[一二三四五六七八九十\d]+天：/.test(trimmed)) {
+                    processed.push(`<h1>${trimmed}</h1>`);
+                } else if (/^分钟 \d+-\d+：/.test(trimmed)) {
+                    processed.push(`<h2>${trimmed}</h2>`);
+                } else if (/^深度技术解析：/.test(trimmed)) {
+                    processed.push(`<h2>${trimmed}</h2>`);
+                } else if (trimmed.startsWith('- ')) {
+                    processed.push(`<li>${trimmed.substring(2)}</li>`);
+                } else if (/^\d+\./.test(trimmed)) {
+                    processed.push(`<li>${trimmed}</li>`);
+                } else {
+                    processed.push(`<p class="normal-text">${trimmed}</p>`);
+                }
+            }
+            
+            return processed.join('\n\n');
+        }
+        
+        function createHTML(content) {
+            return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>大卫排版结果</title>
+    <style>
+        @page { size: 210mm 285mm; margin: 25mm; }
+        body { font-family: "Microsoft YaHei", serif; line-height: 1.6; margin: 0; padding: 20px; }
+        .book-container { max-width: 21cm; margin: 0 auto; background: white; padding: 25mm; }
+        h1 { font-size: 20pt; font-weight: bold; color: #2c3e50; margin: 20pt 0 15pt 0; }
+        h2 { font-size: 16pt; font-weight: bold; color: #34495e; margin: 15pt 0 10pt 0; }
+        p { font-size: 12pt; margin: 8pt 0; text-indent: 2em; }
+        p.normal-text { text-indent: 2em !important; }
+        li { font-size: 12pt; margin: 4pt 0; list-style: none; }
+    </style>
+</head>
+<body>
+    <div class="book-container">
+        ${content}
+    </div>
+</body>
+</html>`;
+        }
+        
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

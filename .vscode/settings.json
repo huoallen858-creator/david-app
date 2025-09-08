@@ -1,0 +1,9 @@
+{
+    "dart.flutterSdkPath": "C:\\flutter",
+    "dart.sdkPath": "C:\\flutter\\bin\\cache\\dart-sdk",
+    "files.associations": {
+        "*.dart": "dart"
+    },
+    "editor.formatOnSave": true,
+    "dart.lineLength": 120
+}

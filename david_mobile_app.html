@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大卫排版应用程序</title>
+    <meta name="description" content="专业的文本排版工具，支持智能分页和格式识别">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="大卫排版">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .features {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .features h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            color: #666;
+        }
+        
+        .features li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .install-prompt button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .install-prompt .close {
+            background: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>大卫排版应用程序</h1>
+            <p>David Text Formatting Application - Mobile Version</p>
+        </div>
+        
+        <div class="content">
+            <form id="form">
+                <div class="form-group">
+                    <label for="text">输入要排版的文本内容：</label>
+                    <textarea id="text" name="text" placeholder="在此输入要排版的文本内容..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">开始排版</button>
+                
+                <button type="button" class="btn" id="installBtn" onclick="showInstallInstructions()" style="background: #28a745; margin-top: 10px;">
+                    安装到手机桌面
+                </button>
+            </form>
+            
+            <div id="status" class="status"></div>
+            
+            <div class="features">
+                <h3>功能特点</h3>
+                <ul>
+                    <li>自动识别标题格式</li>
+                    <li>清理特殊符号</li>
+                    <li>智能分页</li>
+                    <li>专业排版输出</li>
+                    <li>大16开尺寸 (210mm × 285mm)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="install-prompt" id="installPrompt">
+        <p>将应用添加到主屏幕，获得更好的使用体验！</p>
+        <button onclick="installApp()">安装应用</button>
+        <button class="close" onclick="closeInstallPrompt()">稍后</button>
+    </div>
+    
+    <script>
+        let deferredPrompt;
+        
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(error => console.log('SW registration failed'));
+        }
+        
+        // 监听安装提示
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'block';
+        });
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('用户接受了安装提示');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+            closeInstallPrompt();
+        }
+        
+        function closeInstallPrompt() {
+            document.getElementById('installPrompt').style.display = 'none';
+        }
+        
+        // 处理表单提交
+        document.getElementById('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('text').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const status = document.getElementById('status');
+            
+            if (!text) {
+                showStatus('请输入文本内容', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '正在处理...';
+            showStatus('正在处理文本，请稍候...', 'info');
+            
+            // 模拟处理过程
+            setTimeout(() => {
+                try {
+                    // 处理文本
+                    const processedText = processText(text);
+                    const htmlResult = createHTML(processedText);
+                    
+                    // 下载文件
+                    downloadFile(htmlResult, `大卫排版结果_${new Date().getTime()}.html`);
+                    
+                    showStatus('排版完成！文件已下载到您的设备', 'success');
+                } catch (error) {
+                    showStatus('处理失败: ' + error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '开始排版';
+                }
+            }, 1000);
+        });
+        
+        function processText(text) {
+            // 清理Markdown符号和特殊符号
+            text = text.replace(/\*\*([^*]+)\*\*/g, '$1');  // 移除 **text**
+            text = text.replace(/\*([^*]+)\*/g, '$1');      // 移除 *text*
+            text = text.replace(/^#+\s*/gm, '');            // 移除行首的 # 符号
+            text = text.replace(/#+/g, '');                 // 移除所有的 # 符号
+            text = text.replace(/[□■▪▫▬▭▮▯]/g, '');        // 移除小方形符号
+            text = text.replace(/[•·◦‣⁃]/g, '');            // 移除项目符号
+            
+            // 多次清理确保彻底
+            for (let i = 0; i < 10; i++) {
+                text = text.replace(/[▪▫▬▭▮▯]/g, '');        // 移除更多方形符号
+            }
+            
+            // 按段落分割
+            const paragraphs = text.split('\n\n');
+            const processed = [];
+            
+            for (const paragraph of paragraphs) {
+                const trimmed = paragraph.trim();
+                if (!trimmed) continue;
+                
+                if (/^第[一二三四五六七八九十\d]+天：/.test(trimmed)) {
+                    processed.push(`<h1>${trimmed}</h1>`);
+                } else if (/^分钟 \d+-\d+：/.test(trimmed)) {
+                    processed.push(`<h2>${trimmed}</h2>`);
+                } else if (/^深度技术解析：/.test(trimmed)) {
+                    processed.push(`<h2>${trimmed}</h2>`);
+                } else if (trimmed.startsWith('- ')) {
+                    processed.push(`<li>${trimmed.substring(2)}</li>`);
+                } else if (/^\d+\./.test(trimmed)) {
+                    processed.push(`<li>${trimmed}</li>`);
+                } else {
+                    processed.push(`<p class="normal-text">${trimmed}</p>`);
+                }
+            }
+            
+            return processed.join('\n\n');
+        }
+        
+        function createHTML(content) {
+            return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>大卫排版结果</title>
+    <style>
+        @page { 
+            size: 210mm 285mm; 
+            margin: 25mm 25mm 20mm 25mm; 
+        }
+        
+        body { 
+            font-family: "Microsoft YaHei", "SimSun", serif; 
+            line-height: 1.6; 
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        
+        .book-container {
+            width: 21cm;
+            min-height: 28.5cm;
+            margin: 1cm auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 25mm 25mm 20mm 25mm;
+            box-sizing: border-box;
+        }
+        
+        h1 { 
+            font-size: 20pt;
+            font-weight: bold; 
+            color: #2c3e50; 
+            margin: 20pt 0 15pt 0;
+            page-break-before: always;
+        }
+        
+        h2 { 
+            font-size: 16pt;
+            font-weight: bold; 
+            color: #34495e; 
+            margin: 15pt 0 10pt 0;
+        }
+        
+        p { 
+            font-size: 12pt; 
+            margin: 8pt 0; 
+            text-indent: 2em;
+            line-height: 1.6;
+        }
+        
+        p.normal-text {
+            text-indent: 2em !important;
+            padding-left: 0;
+        }
+        
+        li { 
+            font-size: 12pt; 
+            margin: 4pt 0; 
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        @media print {
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-container">
+        ${content}
+    </div>
+</body>
+</html>`;
+        }
+        
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        function showInstallInstructions() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let instructions = '';
+            
+            if (isIOS) {
+                instructions = `
+                <h3>📱 iPhone安装方法：</h3>
+                <ol>
+                    <li>点击底部中间的分享按钮 📤</li>
+                    <li>向下滑动找到"添加到主屏幕"</li>
+                    <li>点击"添加"完成安装</li>
+                </ol>
+                `;
+            } else if (isAndroid) {
+                instructions = `
+                <h3>📱 三星浏览器安装方法：</h3>
+                <p><strong>方法1：菜单安装</strong></p>
+                <ol>
+                    <li>点击右上角三个点 ⋮</li>
+                    <li>选择"添加到主屏幕"或"添加到书签"</li>
+                    <li>点击"添加"完成安装</li>
+                </ol>
+                <p><strong>方法2：长按安装</strong></p>
+                <ol>
+                    <li>长按页面空白处</li>
+                    <li>选择"添加到主屏幕"</li>
+                    <li>点击"添加"完成安装</li>
+                </ol>
+                <p><strong>方法3：地址栏安装</strong></p>
+                <ol>
+                    <li>点击地址栏右侧的星号 ⭐</li>
+                    <li>选择"添加到主屏幕"</li>
+                    <li>点击"添加"完成安装</li>
+                </ol>
+                <p><strong>如果还是找不到：</strong></p>
+                <ol>
+                    <li>点击浏览器底部的菜单按钮（三条线 ☰）</li>
+                    <li>选择"书签" → "添加到主屏幕"</li>
+                </ol>
+                `;
+            } else {
+                instructions = `
+                <h3>📱 通用安装方法：</h3>
+                <ol>
+                    <li>点击浏览器菜单（通常是三个点或三条线）</li>
+                    <li>查找"添加到主屏幕"、"安装应用"或"添加到桌面"</li>
+                    <li>按照提示完成安装</li>
+                </ol>
+                `;
+            }
+            
+            showStatus(instructions, 'info');
+        }
+    </script>
+</body>
+</html>

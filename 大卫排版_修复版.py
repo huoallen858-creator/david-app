@@ -1,0 +1,279 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+大卫排版应用程序 - 修复版
+David Text Formatting Application - Fixed Version
+"""
+
+import os
+import re
+import webbrowser
+from datetime import datetime
+
+def process_text(text):
+    """处理文本"""
+    # 先去掉Markdown格式的*符号
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
+    text = re.sub(r'\*([^*]+)\*', r'\1', text)
+    
+    # 按段落分割
+    paragraphs = text.split('\n\n')
+    processed_paragraphs = []
+    
+    for paragraph in paragraphs:
+        paragraph = paragraph.strip()
+        if not paragraph:
+            continue
+        
+        # 处理主要章节标题（第X天：）
+        if re.match(r'^第[一二三四五六七八九十\d]+天：', paragraph):
+            processed_paragraphs.append('<div class="page-break"></div>')
+            processed_paragraphs.append(f"<h1>{paragraph}</h1>")
+        # 处理分钟标题（分钟 XX-XX：标题）
+        elif re.match(r'^分钟 \d+-\d+：', paragraph):
+            processed_paragraphs.append(f"<h2>{paragraph}</h2>")
+        # 处理技术解析标题
+        elif re.match(r'^深度技术解析：', paragraph):
+            processed_paragraphs.append(f"<h2>{paragraph}</h2>")
+        # 处理列表项
+        elif re.match(r'^[•\-\d]+\.', paragraph) or paragraph.startswith('•'):
+            lines = paragraph.split('\n')
+            list_items = []
+            for line in lines:
+                line = line.strip()
+                if line:
+                    if line.startswith('•'):
+                        list_items.append(f'<li>{line[1:].strip()}</li>')
+                    elif re.match(r'^\d+\.', line):
+                        list_items.append(f'<li>{line}</li>')
+                    elif line.startswith('- '):
+                        list_items.append(f'<li>{line[2:]}</li>')
+                    else:
+                        list_items.append(f'<li>{line}</li>')
+            
+            if list_items:
+                processed_paragraphs.append('<ul>')
+                processed_paragraphs.extend(list_items)
+                processed_paragraphs.append('</ul>')
+        # 处理引用或重点
+        elif '【' in paragraph and '】' in paragraph:
+            quote_match = re.search(r'【([^】]+)】', paragraph)
+            if quote_match:
+                processed_paragraphs.append(f'<blockquote>{quote_match.group(1)}</blockquote>')
+            else:
+                processed_paragraphs.append(f'<p>{paragraph}</p>')
+        # 处理普通段落
+        else:
+            paragraph = paragraph.replace('\n', ' ')
+            processed_paragraphs.append(f'<p>{paragraph}</p>')
+    
+    processed_text = '\n'.join(processed_paragraphs)
+    
+    # 创建HTML模板 - 修复CSS问题
+    html_template = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>从普通到卓越主播的技术 - 28.5cm版本</title>
+    <style>
+        @page { 
+            size: 184mm 285mm; 
+            margin: 25mm 25mm 20mm 25mm; 
+        }
+        body { 
+            font-family: "Microsoft YaHei", "SimSun", serif; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8f8f8; 
+            color: #333; 
+        }
+        .book-container { 
+            width: 18.4cm; 
+            min-height: 28.5cm; 
+            margin: 1cm auto; 
+            background-color: white; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1); 
+            padding: 25mm 25mm 20mm 25mm; 
+            box-sizing: border-box; 
+        }
+        h1 { 
+            font-size: 20pt; 
+            font-weight: bold; 
+            color: #2c3e50; 
+            margin: 30pt 0 15pt 0; 
+            text-align: center; 
+            border-bottom: 2pt solid #2c3e50; 
+            padding-bottom: 8pt; 
+            line-height: 1.3; 
+        }
+        h2 { 
+            font-size: 16pt; 
+            font-weight: bold; 
+            color: #34495e; 
+            margin: 20pt 0 12pt 0; 
+            border-left: 3pt solid #3498db; 
+            padding-left: 10pt; 
+            line-height: 1.4; 
+        }
+        p { 
+            font-size: 12pt; 
+            text-indent: 2em; 
+            margin: 6pt 0; 
+            line-height: 1.6; 
+            text-align: justify; 
+        }
+        blockquote { 
+            background-color: #f8f9fa; 
+            border-left: 4pt solid #e74c3c; 
+            margin: 12pt 0; 
+            padding: 10pt 12pt; 
+            font-style: italic; 
+            font-weight: bold; 
+            font-size: 11pt; 
+            border-radius: 0 3pt 3pt 0; 
+        }
+        li { 
+            font-size: 12pt; 
+            margin: 3pt 0; 
+            line-height: 1.5; 
+        }
+        ul, ol { 
+            margin: 8pt 0; 
+            padding-left: 18pt; 
+        }
+        .page-break { 
+            page-break-before: always; 
+            break-before: page; 
+        }
+        @media print { 
+            body { background-color: white; } 
+            .book-container { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                min-height: 100vh; 
+            } 
+            .page-break { page-break-before: always; } 
+        }
+        @media screen { 
+            body { 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                min-height: 100vh; 
+                padding: 20px 0; 
+            } 
+            .page-break { 
+                border-top: 2px dashed #ccc; 
+                margin: 30px 0; 
+                padding: 10px 0; 
+                text-align: center; 
+                color: #666; 
+                font-size: 10pt; 
+            } 
+            .page-break::before { 
+                content: "--- 分页 (28.5cm) ---"; 
+            } 
+        }
+    </style>
+</head>
+<body>
+    <div class="book-container">
+{content}
+    </div>
+</body>
+</html>"""
+    
+    return html_template.format(content=processed_text)
+
+def main():
+    print("=" * 60)
+    print("大卫排版应用程序 - 修复版")
+    print("=" * 60)
+    
+    # 创建输出目录
+    if not os.path.exists('output'):
+        os.makedirs('output')
+        print("✓ 创建目录: output")
+    
+    # 使用示例文本
+    sample_text = """第1天：基础准备
+
+分钟 1-5：了解直播行业
+
+直播行业是一个快速发展的新兴产业，具有以下特点：
+• 实时互动性强
+• 内容形式多样
+• 受众群体广泛
+• 变现方式灵活
+
+【重点提示】成功的直播需要专业的技术支持和持续的内容创新。
+
+分钟 6-10：设备准备
+
+深度技术解析：直播设备配置
+
+直播设备是成功直播的基础，需要以下核心设备：
+1. 摄像头：推荐使用1080p以上分辨率
+2. 麦克风：建议使用专业麦克风
+3. 灯光：确保画面清晰明亮
+4. 网络：稳定的网络连接至关重要
+
+第2天：内容策划
+
+分钟 1-5：内容定位
+
+内容定位是直播成功的关键因素：
+• 明确目标受众
+• 确定内容主题
+• 制定内容计划
+• 保持内容一致性
+
+【核心要点】好的内容定位能够吸引精准的粉丝群体，提高直播效果。
+
+分钟 6-10：互动技巧
+
+深度技术解析：观众互动策略
+
+有效的观众互动包括：
+1. 及时回应弹幕
+2. 设置互动环节
+3. 使用投票功能
+4. 定期举办活动
+
+通过以上技巧，可以显著提升观众的参与度和粘性。"""
+    
+    try:
+        print("\n正在处理示例文本...")
+        html_result = process_text(sample_text)
+        
+        # 生成文件名
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"大卫排版结果_{timestamp}.html"
+        filepath = os.path.join('output', filename)
+        
+        # 保存文件
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(html_result)
+        
+        print(f"✓ 处理完成！")
+        print(f"✓ 输出文件: {filepath}")
+        
+        # 自动打开文件
+        try:
+            webbrowser.open(f'file:///{os.path.abspath(filepath)}')
+            print("✓ 已在浏览器中打开结果")
+        except Exception as e:
+            print(f"✗ 打开失败: {e}")
+        
+        print("\n✓ 程序执行完成！")
+        
+    except Exception as e:
+        print(f"✗ 处理失败: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    input("\n按任意键退出...")
+
+if __name__ == "__main__":
+    main()
+
