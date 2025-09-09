@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大卫排版 - 手机预览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .app-container {
+            height: calc(100% - 44px);
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .tab-bar {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
+        }
+
+        .tab-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+            border: 1px solid #c4b5fd;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .info-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #7c3aed;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .info-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #6b46c1;
+        }
+
+        .input-container {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .text-input {
+            flex: 1;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 16px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .text-input:focus {
+            border-color: #a855f7;
+            border-width: 2px;
+        }
+
+        .fab {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border: none;
+            border-radius: 28px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+            transition: all 0.3s;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.6);
+        }
+
+        .preview-container {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-status {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .preview-text {
+            flex: 1;
+            font-size: 16px;
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+            color: #374151;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #9ca3af;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .control-button {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        .control-button:hover {
+            background: #6d28d9;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h3>手机预览控制</h3>
+        <button class="control-button" onclick="switchTab(0)">输入文本</button>
+        <button class="control-button" onclick="switchTab(1)">预览结果</button>
+        <button class="control-button" onclick="simulateFormat()">模拟排版</button>
+        <button class="control-button" onclick="resetApp()">重置</button>
+    </div>
+
+    <div class="phone-container">
+        <div class="phone-screen">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 📶 📶</span>
+                <span>🔋 100%</span>
+            </div>
+            
+            <div class="app-container">
+                <div class="app-header">
+                    <div class="app-title">📚 大卫排版</div>
+                    <div class="tab-bar">
+                        <div class="tab active" id="tab-input">✏️ 输入文本</div>
+                        <div class="tab" id="tab-preview">👁️ 预览结果</div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="content-input">
+                    <div class="info-card">
+                        <div class="info-title">
+                            ℹ️ 支持格式
+                        </div>
+                        <div class="info-text">
+                            • CH1 章标题 → 自动加粗分页<br>
+                            • CH1-S1 小节标题 → 自动加粗<br>
+                            • 【重要内容】 → 自动加框<br>
+                            • 普通段落 → 自动首行缩进
+                        </div>
+                    </div>
+
+                    <div class="input-container">
+                        <div class="input-label">输入要排版的文本：</div>
+                        <textarea class="text-input" id="textInput" placeholder="在此输入要排版的文本内容...
+
+例如：
+CH1 第一章标题
+这是第一章的内容...
+
+CH1-S1 第一个小节
+这是小节内容...
+
+【重要观点】这是重要内容"></textarea>
+                    </div>
+
+                    <button class="fab" onclick="simulateFormat()">🚀</button>
+                </div>
+
+                <div class="tab-content hidden" id="content-preview">
+                    <div class="preview-status">
+                        <span>👁️ 请先在"输入文本"页面输入内容并点击排版</span>
+                    </div>
+
+                    <div class="preview-container">
+                        <div class="empty-state" id="emptyState">
+                            <div class="empty-icon">📝</div>
+                            <div style="font-size: 16px; margin-bottom: 8px;">暂无预览内容</div>
+                            <div style="font-size: 14px;">请先输入文本并排版</div>
+                        </div>
+                        <div class="preview-text hidden" id="previewText"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 0;
+        let hasFormatted = false;
+
+        function switchTab(tabIndex) {
+            currentTab = tabIndex;
+            
+            // 更新标签页
+            document.getElementById('tab-input').classList.toggle('active', tabIndex === 0);
+            document.getElementById('tab-preview').classList.toggle('active', tabIndex === 1);
+            
+            // 更新内容
+            document.getElementById('content-input').classList.toggle('hidden', tabIndex !== 0);
+            document.getElementById('content-preview').classList.toggle('hidden', tabIndex !== 1);
+        }
+
+        function simulateFormat() {
+            const inputText = document.getElementById('textInput').value;
+            if (!inputText.trim()) {
+                alert('请输入要排版的文本内容！');
+                return;
+            }
+
+            // 模拟处理延迟
+            const fab = document.querySelector('.fab');
+            const originalText = fab.textContent;
+            fab.textContent = '⏳';
+            fab.style.background = '#6b7280';
+
+            setTimeout(() => {
+                const formattedText = processText(inputText);
+                
+                // 更新预览
+                document.getElementById('previewText').innerHTML = formattedText.replace(/\n/g, '<br>');
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('previewText').classList.remove('hidden');
+                
+                // 更新状态
+                document.querySelector('.preview-status span').textContent = '排版完成！以下是预览效果';
+                hasFormatted = true;
+                
+                // 切换到预览页面
+                switchTab(1);
+                
+                // 恢复按钮
+                fab.textContent = originalText;
+                fab.style.background = 'linear-gradient(135deg, #7c3aed, #a855f7)';
+            }, 1000);
+        }
+
+        function processText(text) {
+            // 清理Markdown符号和特殊符号
+            text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+            text = text.replace(/\*([^*]+)\*/g, '$1');
+            text = text.replace(/^#+\s*/gm, '');
+            text = text.replace(/#+/g, '');
+            text = text.replace(/[□■▪▫▬▭▮▯•·◦‣⁃]/g, '');
+            
+            // 按段落分割
+            const paragraphs = text.split(/\n\s*\n/);
+            let result = '';
+            let lineCount = 0;
+            const maxLinesPerPage = 35;
+            
+            for (const paragraph of paragraphs) {
+                const trimmedParagraph = paragraph.trim();
+                if (trimmedParagraph === '') continue;
+                
+                // 检查是否是标题
+                if (/^CH\d+[-\s]/.test(trimmedParagraph)) {
+                    // 一级标题
+                    if (lineCount > 0) {
+                        result += '\n\n📄 分页 - 28.5cm 📄\n\n';
+                    }
+                    result += '【章标题】' + trimmedParagraph + '\n\n';
+                    lineCount += 3;
+                } else if (/^CH\d+-S\d+/.test(trimmedParagraph)) {
+                    // 二级标题
+                    if (lineCount > maxLinesPerPage - 5) {
+                        result += '\n\n📄 分页 - 28.5cm 📄\n\n';
+                        lineCount = 0;
+                    }
+                    result += '【小节标题】' + trimmedParagraph + '\n\n';
+                    lineCount += 2;
+                } else if (/^【.*】$/.test(trimmedParagraph)) {
+                    // 引用内容
+                    if (lineCount > maxLinesPerPage - 3) {
+                        result += '\n\n📄 分页 - 28.5cm 📄\n\n';
+                        lineCount = 0;
+                    }
+                    result += '【重要】' + trimmedParagraph + '\n\n';
+                    lineCount += 2;
+                } else {
+                    // 普通段落
+                    if (lineCount > maxLinesPerPage - 2) {
+                        result += '\n\n📄 分页 - 28.5cm 📄\n\n';
+                        lineCount = 0;
+                    }
+                    result += '    ' + trimmedParagraph + '\n\n';
+                    lineCount += Math.ceil(trimmedParagraph.length / 50);
+                }
+            }
+            
+            return result;
+        }
+
+        function resetApp() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('previewText').innerHTML = '';
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('previewText').classList.add('hidden');
+            document.querySelector('.preview-status span').textContent = '请先在"输入文本"页面输入内容并点击排版';
+            hasFormatted = false;
+            switchTab(0);
+        }
+
+        // 初始化
+        document.getElementById('textInput').value = `CH1 人工智能的发展历程
+
+人工智能（Artificial Intelligence，简称AI）是计算机科学的一个分支，它企图了解智能的实质，并生产出一种新的能以人类智能相似的方式做出反应的智能机器。
+
+CH1-S1 早期发展（1940-1950年代）
+
+在1940年代，随着电子计算机的发明，科学家们开始思考机器是否能够模拟人类思维。
+
+【重要观点】1943年，麦卡洛克和皮茨提出了第一个神经网络模型，这被认为是人工智能研究的开端。
+
+CH1-S2 黄金时代（1950-1970年代）
+
+1956年，达特茅斯会议标志着人工智能作为一门学科的正式诞生。在这个时期，研究者们开发了许多重要的算法和程序：
+
+1. 逻辑理论机（1956年）
+2. 通用问题求解器（1957年）
+3. 感知机（1958年）`;
+    </script>
+</body>
+</html>
